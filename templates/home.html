@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+   <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ddd;">
+  <h1 style="margin: 0; font-size: 1.8rem; color: #333;">Expense Tracker</h1>
+  {% if 'user_id' in session %}
+  <form action="{{ url_for('logout') }}" method="post" style="margin: 0;">
+    <button type="submit"
+            style="padding: 8px 16px; background-color: #ff4d4d; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600; transition: background-color 0.3s ease;">
+      Logout
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+    <!-- 💸 Expense Input Form -->
+<form method="POST" action="/add">
+    <input type="text" name="description" placeholder="Expense description" required>
+    <input type="number" step="0.01" name="amount" placeholder="Amount" required>
+    <input type="date" name="date" required>
+    <select name="category" required>
+        <option value="Food">Food</option>
+        <option value="Travel">Travel</option>
+        <option value="Bills">Bills</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Others">Others</option>
+    </select>
+    <button type="submit">Add Expense</button>
+</form>
+
+
+    <!-- 📋 Expenses List -->
+    <table border="1" cellpadding="8" cellspacing="0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Amount (₹)</th>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr> 
+                <td>{{ loop.index }}</td>
+                <td>{{ expense[1] }}</td>
+                <td>{{ expense[2] }}</td>
+                <td>{{ expense[3] }}</td>
+                <td>{{ expense[4] }}</td>
+                <td>
+                    <form method="POST" action="/delete/{{ expense[0] }}" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                    <form method="GET" action="/edit/{{ expense[0] }}" style="display:inline;">
+                        <button type="submit">Edit</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+</table>
+    <form method="GET" action="/">
+    <label for="start_date">From:</label>
+    <input type="date" name="start_date" required>
+    <label for="end_date">To:</label>
+    <input type="date" name="end_date" required>
+    <button type="submit">Filter</button>
+</form>
+<br>
+
+ <!-- 📊 Chart Section -->
+    {% if labels is defined and values is defined %}
+    <h2>Expense Chart</h2>
+    <canvas id="expenseChart" width="400" height="200"></canvas>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const chartLabels = {{ labels | tojson | safe }};
+        const chartValues = {{ values | tojson | safe }};
+
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        const expenseChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Expenses in ₹',
+                    data: chartValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+    <!-- 🥧 Category-wise Pie Chart -->
+<h2>Expenses by Category</h2>
+<canvas id="categoryChart" width="400" height="200"></canvas>
+<script>
+    const catLabels = {{ cat_labels | tojson | safe }};
+    const catValues = {{ cat_values | tojson | safe }};
+
+    const catCtx = document.getElementById('categoryChart').getContext('2d');
+    const categoryChart = new Chart(catCtx, {
+        type: 'doughnut', // You can use 'pie' too
+        data: {
+            labels: catLabels,
+            datasets: [{
+                label: 'Category Expenses',
+                data: catValues,
+                backgroundColor: [
+                    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+
+<!-- 📤 Export Button -->
+<form method="GET" action="/export">
+    <button type="submit">Download CSV</button>
+</form>
+
+    <!-- 📜 Expense History -->
+    <h2>Expense History</h2>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Category</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {% for expense in expenses %}
+            <tr>
+                <td>{{ loop.index }}</td>  <!-- This shows 1, 2, 3... -->
+                <td>{{ expense[1] }}</td>
+                <td>{{ expense[2] }}</td>
+                <td>{{ expense[3] }}</td>
+                <td>{{ expense[4] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

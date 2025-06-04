@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Expense</title>
+</head>
+<body>
+    <h1>Edit Expense</h1>
+    <form method="POST" action="/update/{{ expense[0] }}">
+        <input type="text" name="description" value="{{ expense[1] }}" required>
+        <input type="number" step="0.01" name="amount" value="{{ expense[2] }}" required>
+        <input type="date" name="date" value="{{ expense[3] }}" required>
+        <select name="category" required>
+            <option value="Food" {% if expense[4] == 'Food' %}selected{% endif %}>Food</option>
+            <option value="Travel" {% if expense[4] == 'Travel' %}selected{% endif %}>Travel</option>
+            <option value="Bills" {% if expense[4] == 'Bills' %}selected{% endif %}>Bills</option>
+            <option value="Shopping" {% if expense[4] == 'Shopping' %}selected{% endif %}>Shopping</option>
+            <option value="Others" {% if expense[4] == 'Others' %}selected{% endif %}>Others</option>
+        </select>
+        <button type="submit">Update Expense</button>
+    </form>
+</body>
+</html>
